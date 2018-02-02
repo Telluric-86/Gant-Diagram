@@ -1,6 +1,10 @@
 ;'use strict';
 
 const Gant = function () {
+  if ( !(this instanceof Gant) ){
+    return new Gant();
+  };
+  
   this.buildDiagram();
 };
 
@@ -70,4 +74,4 @@ Gant.prototype.buildDiagram = function () {
 
 };
 
-window.addEventListener('DOMContentLoaded', () => { new Gant(); } );
+window.addEventListener('DOMContentLoaded', () => Gant() );
