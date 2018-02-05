@@ -1,11 +1,11 @@
 ;'use strict';
 
-const Gant = function () {
+const Gant = function (JSONFile) {
   if ( !(this instanceof Gant) ){
-    return new Gant();
+    return new Gant(JSONFile);
   };
   
-  this.buildDiagram();
+  this.buildDiagram(JSONFile);
 };
 
 Gant.prototype.loadJSON = function (JSONFile) {
@@ -28,41 +28,112 @@ Gant.prototype.loadJSON = function (JSONFile) {
   });  
 };
   
-Gant.prototype.buildDiagram = function () {
-  let loadPromise = this.loadJSON('data.json');
+Gant.prototype.buildDiagram = function (JSONFile) {
+  let loadPromise = this.loadJSON(JSONFile);
   loadPromise.then(
     (data) => {
       let diagramData = data.items,
           dateArray = data.scale;
       
-      let output = document.getElementById('output');    
-      if (output.children.length !== 0){
-        output.children[0].delete();
+      let tempNode = document.getElementById('output'),
+          output = null;
+      if (tempNode.children.length !== 0){
+        tempNode.children[0].delete();
       };
-      let table = output
-        .appendChild(document.createElement('table'))
-        .appendChild(document.createElement('tbody'));
 
-      diagramData.forEach((itemDiagram) => {
-        output = table.appendChild(document.createElement('tr'));
-        output.appendChild(document.createElement('td')).textContent = itemDiagram['title'];
-
-        let start = dateArray.indexOf(itemDiagram['start']),
-            end = dateArray.indexOf(itemDiagram['end']);
-
-        for ( let i = 1; i < dateArray.length; i += 1 ){
-          if ((i > start) && (i <= end)){
-            output.appendChild(document.createElement('td')).style.backgroundColor = itemDiagram['color'];
-          } else {
-            output.appendChild(document.createElement('td'));
-          };
+      let timeScale = {},
+          timeArray = [];
+      dateArray.forEach( (item) => {
+        let date = item.split('.');
+        timeArray.push(new Date(date[2], date[1], date[0]).getTime());
+      });
+      diagramData.forEach( (item) => {
+        let date = item['start'].split('.');
+        timeArray.push(new Date(date[2], date[1], date[0]).getTime());
+        date = item['end'].split('.');
+        timeArray.push(new Date(date[2], date[1], date[0]).getTime());
+      });
+      
+      timeScale.start = Math.min(...timeArray);
+      timeScale.end = Math.max(...timeArray);
+      timeScale.msInDay = 86400000;
+      timeScale.mainInterval = Math.ceil((timeScale.end - timeScale.start) / timeScale.msInDay);
+      timeScale.scale = 100 / timeScale.mainInterval;
+      timeScale.interval = function (time1, time2){
+        return Math.round( Math.abs(time1 - time2) / timeScale.msInDay);
+      };
+      
+      let mainDiv = document.createElement('div');
+      mainDiv.setAttribute('class', 'diagram-frame');
+      
+      output = mainDiv.appendChild(document.createElement('div'));
+      output.setAttribute('class', 'tasks');
+      diagramData.forEach( (item) => {
+        let outputLocal = output.appendChild(document.createElement('div'));
+        outputLocal.setAttribute('class', 'task-type');
+        outputLocal = outputLocal.appendChild(document.createElement('span'));
+        outputLocal.textContent = item['title'];        
+      });
+      
+      output = mainDiv.appendChild(document.createElement('div'));
+      output.setAttribute('class', 'diagram');
+      diagramData.forEach( (item) => {
+        let date,
+            time1, time2,
+            interval;
+        output = output.appendChild(document.createElement('div'));
+        output.setAttribute('class', 'row');
+        
+        date = item['start'].split('.');
+        time1 = new Date(date[2], date[1], date[0]).getTime();
+        interval = timeScale.interval(time1, timeScale.start);
+        if ( interval !== 0 ){
+          let outputLocal = output.appendChild(document.createElement('div'));
+          let width = interval * timeScale.scale;
+          outputLocal.style.cssText = `width:${width}%;height:inherit;float:left;`;
         };
+        
+        date = item['end'].split('.');
+        time2 = new Date(date[2], date[1], date[0]).getTime();
+        interval = timeScale.interval(time2, time1);
+        if ( interval !== 0 ){
+          let outputLocal = output.appendChild(document.createElement('div'));          
+          let width = interval * timeScale.scale;
+          outputLocal.style.cssText = `width:${width}%;background-color:${item['color']};height:inherit;float:left;`;
+        };
+        
+        output = output.parentNode;
       });
-
-      output = table.appendChild(document.createElement('tr'));
-      dateArray.forEach((itemDate) => {
-        output.appendChild(document.createElement('td')).textContent = itemDate;
-      });
+      
+      
+      tempNode.appendChild(mainDiv);
+//    
+// == Old code ==
+//      
+//      let table = document
+//        .createElement('table')
+//        .appendChild(document.createElement('tbody'));
+//
+//      diagramData.forEach((itemDiagram) => {
+//        output = table.appendChild(document.createElement('tr'));
+//        output.appendChild(document.createElement('td')).textContent = itemDiagram['title'];
+//
+//        let start = dateArray.indexOf(itemDiagram['start']),
+//            end = dateArray.indexOf(itemDiagram['end']);
+//
+//        for ( let i = 1; i < dateArray.length; i += 1 ){
+//          if ((i > start) && (i <= end)){
+//            output.appendChild(document.createElement('td')).style.backgroundColor = itemDiagram['color'];
+//          } else {
+//            output.appendChild(document.createElement('td'));
+//          };
+//        };
+//      });
+//      output = table.appendChild(document.createElement('tr'));
+//      dateArray.forEach((itemDate) => {
+//        output.appendChild(document.createElement('td')).textContent = itemDate;
+//      });
+//      tempNode.appendChild(table.parentNode);
     },
     
     (err) => {
@@ -74,4 +145,4 @@ Gant.prototype.buildDiagram = function () {
 
 };
 
-window.addEventListener('DOMContentLoaded', () => Gant() );
+window.addEventListener('DOMContentLoaded', () => Gant('data.json') );

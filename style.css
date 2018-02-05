@@ -1,0 +1,29 @@
+#output{
+  width: 1000px;
+  margin-left: auto;
+  margin-right: auto;  
+}
+
+.diagram-frame{
+  width: 100%;
+}
+
+.tasks{
+  float: left;
+  background-color: #dddddd;
+}
+
+.task-type{
+  height: 20px;
+}
+
+.diagram{
+  float: left;
+  width: 80%;
+  background-color: #eeeeee;
+}
+
+.row{
+  width: 100%;
+  height: 20px;  
+}
