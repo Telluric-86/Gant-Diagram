@@ -59,6 +59,10 @@ Gant.prototype.buildDiagram = function (JSONFile) {
       timeScale.msInDay = 86400000;
       timeScale.mainInterval = Math.ceil((timeScale.end - timeScale.start) / timeScale.msInDay);
       timeScale.scale = 100 / timeScale.mainInterval;
+      timeScale.strDateToTime = function (strDate){
+        let date = strDate.split('.');
+        return new Date(date[2], date[1], date[0]).getTime();
+      };
       timeScale.interval = function (time1, time2){
         return Math.round( Math.abs(time1 - time2) / timeScale.msInDay);
       };
@@ -78,14 +82,12 @@ Gant.prototype.buildDiagram = function (JSONFile) {
       output = mainDiv.appendChild(document.createElement('div'));
       output.setAttribute('class', 'diagram');
       diagramData.forEach( (item) => {
-        let date,
-            time1, time2,
+        let time1, time2,
             interval;
         output = output.appendChild(document.createElement('div'));
         output.setAttribute('class', 'row');
-        
-        date = item['start'].split('.');
-        time1 = new Date(date[2], date[1], date[0]).getTime();
+                
+        time1 = timeScale.strDateToTime(item['start']);
         interval = timeScale.interval(time1, timeScale.start);
         if ( interval !== 0 ){
           let outputLocal = output.appendChild(document.createElement('div'));
@@ -93,8 +95,7 @@ Gant.prototype.buildDiagram = function (JSONFile) {
           outputLocal.style.cssText = `width:${width}%;height:inherit;float:left;`;
         };
         
-        date = item['end'].split('.');
-        time2 = new Date(date[2], date[1], date[0]).getTime();
+        time2 = timeScale.strDateToTime(item['end']);
         interval = timeScale.interval(time2, time1);
         if ( interval !== 0 ){
           let outputLocal = output.appendChild(document.createElement('div'));
@@ -108,14 +109,12 @@ Gant.prototype.buildDiagram = function (JSONFile) {
       output = output.appendChild(document.createElement('div'));
       output.setAttribute('class', 'row');
       for (let i = 0; i < dateArray.length; i += 1) {
-        let date,
-            time1, time2,
+        let time1, time2,
             interval;
     
         if ( i === 0 ){
-          date = dateArray[i].split('.');
           time1 = timeScale.start;
-          time2 = new Date(date[2], date[1], date[0]).getTime();
+          time2 = timeScale.strDateToTime(dateArray[i]);
           interval = timeScale.interval(time2, time1);
           if ( interval === 0 ) {
             continue          
@@ -127,10 +126,8 @@ Gant.prototype.buildDiagram = function (JSONFile) {
           };
         };
         
-        date = dateArray[i-1].split('.');
-        time1 = new Date(date[2], date[1], date[0]).getTime();
-        date = dateArray[i].split('.');
-        time2 = new Date(date[2], date[1], date[0]).getTime();
+        time1 = timeScale.strDateToTime(dateArray[i-1]);
+        time2 = timeScale.strDateToTime(dateArray[i]);
         interval = timeScale.interval(time2, time1);
         
         let width = interval * timeScale.scale;
