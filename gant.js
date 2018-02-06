@@ -97,14 +97,55 @@ Gant.prototype.buildDiagram = function (JSONFile) {
         time2 = new Date(date[2], date[1], date[0]).getTime();
         interval = timeScale.interval(time2, time1);
         if ( interval !== 0 ){
-          let outputLocal = output.appendChild(document.createElement('div'));          
+          let outputLocal = output.appendChild(document.createElement('div'));
           let width = interval * timeScale.scale;
           outputLocal.style.cssText = `width:${width}%;background-color:${item['color']};height:inherit;float:left;`;
         };
         
         output = output.parentNode;
       });
-      
+
+      output = output.appendChild(document.createElement('div'));
+      output.setAttribute('class', 'row');
+      for (let i = 0; i < dateArray.length; i += 1) {
+        let date,
+            time1, time2,
+            interval;
+    
+        if ( i === 0 ){
+          date = dateArray[i].split('.');
+          time1 = timeScale.start;
+          time2 = new Date(date[2], date[1], date[0]).getTime();
+          interval = timeScale.interval(time2, time1);
+          if ( interval === 0 ) {
+            continue          
+          } else {
+            let width = interval * timeScale.scale;
+            let outputLocal = output.appendChild(document.createElement('div'));
+            outputLocal.style.cssText = `width:${width}%;height:inherit;float:left;`;
+            continue;
+          };
+        };
+        
+        date = dateArray[i-1].split('.');
+        time1 = new Date(date[2], date[1], date[0]).getTime();
+        date = dateArray[i].split('.');
+        time2 = new Date(date[2], date[1], date[0]).getTime();
+        interval = timeScale.interval(time2, time1);
+        
+        let width = interval * timeScale.scale;
+        let outputLocal = output.appendChild(document.createElement('div'));
+        outputLocal.style.cssText = `width:${width}%;height:inherit;float:left;`;
+        if (i === 1){
+          outputLocal = outputLocal.appendChild(document.createElement('span'));
+          outputLocal.setAttribute('class', 'date-left');
+          outputLocal.textContent = dateArray[i-1];
+          outputLocal = outputLocal.parentNode;
+        };
+        outputLocal = outputLocal.appendChild(document.createElement('span'));
+        outputLocal.setAttribute('class', 'date-right');
+        outputLocal.textContent = dateArray[i];        
+      };
       
       tempNode.appendChild(mainDiv);
 //    

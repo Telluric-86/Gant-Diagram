@@ -25,5 +25,21 @@
 
 .row{
   width: 100%;
-  height: 20px;  
+  height: 20px;
+}
+
+.date-left{
+  display: block;
+  height: inherit;
+  float: left;
+  margin-left: -35px;
+  background-color: #eeeeee;
+}
+
+.date-right{
+  display: block;
+  height: inherit;
+  float: right;
+  margin-right: -35px;
+  background-color: #eeeeee;
 }
